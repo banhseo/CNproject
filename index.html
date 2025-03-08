@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Website</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -15,24 +16,57 @@
 <body>
     <h1>Welcome to My Website</h1>
     <p>This is a simple webpage hosted on GitHub Pages.</p>
-<script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
 
-  // Your web app's Firebase configuration
-  const firebaseConfig = {
-    apiKey: "AIzaSyDZXG7y69nDwFY6pJlrH3P_cptZvvJ4P-w",
-    authDomain: "cnproject-30ca4.firebaseapp.com",
-    projectId: "cnproject-30ca4",
-    storageBucket: "cnproject-30ca4.firebasestorage.app",
-    messagingSenderId: "877095027711",
-    appId: "1:877095027711:web:ba3c5c91c5f6193bb31dca"
-  };
+    <form id="dataForm">
+        <input type="text" id="userInput" placeholder="Enter text..." required>
+        <button type="submit">Save</button>
+    </form>
 
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-</script>
+    <h2>Stored Messages:</h2>
+    <div id="output"></div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDZXG7y69nDwFY6pJlrH3P_cptZvvJ4P-w",
+            authDomain: "cnproject-30ca4.firebaseapp.com",
+            projectId: "cnproject-30ca4",
+            storageBucket: "cnproject-30ca4.appspot.com",
+            messagingSenderId: "877095027711",
+            appId: "1:877095027711:web:ba3c5c91c5f6193bb31dca"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+
+        const db = firebase.firestore();
+
+        async function saveData(event) {
+            event.preventDefault();
+
+            let input = document.getElementById("userInput").value;
+            let safeInput = DOMPurify.sanitize(input);
+
+            try {
+                await db.collection("messages").add({ text: safeInput });
+                alert("Data saved!");
+                document.getElementById("userInput").value = "";
+                loadData();
+            } catch (error) {
+                console.error("Error saving data: ", error);
+            }
+        }
+
+        async function loadData() {
+            const querySnapshot = await db.collection("messages").get();
+            let output = "";
+            querySnapshot.forEach((doc) => {
+                output += `<p>${doc.data().text}</p>`;
+            });
+            document.getElementById("output").innerHTML = output;
+        }
+
+        document.getElementById("dataForm").addEventListener("submit", saveData);
+
+        window.onload = loadData;
+    </script>
 </body>
 </html>
